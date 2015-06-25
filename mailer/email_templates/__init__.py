@@ -20,7 +20,7 @@ class EmailTemplateSender:
 
     @classmethod
     def send_html_mail_from_email_template(cls, template_name, recipient_list, attachments=None,
-                                           cached_template_obj=None, **kwargs):
+                                           cached_template_obj=None, base_email_template=None, **kwargs):
 
         for attr_name in ('language_code', 'context_data', 'from_email', 'priority', 'fail_silently', 'auth_user',
                           'auth_password', 'headers', 'message'):
@@ -29,7 +29,8 @@ class EmailTemplateSender:
         context = Context(kwargs['context_data'])
         email_template = cls.get_email_template_object(template_name, cached_template_obj)
 
-        html_template = cls.before_render(email_template, kwargs['language_code'])
+        html_template = cls.before_render(email_template, kwargs['language_code'],
+                                          base_email_template=base_email_template)
         html_message = Template(html_template).render(context).encode('utf-8')
         html_message = cls.after_render(html_message)
 
@@ -45,7 +46,7 @@ class EmailTemplateSender:
         return True
 
     @classmethod
-    def before_render(cls, email_template, language_code):
+    def before_render(cls, email_template, language_code, base_email_template=None):
         return getattr(email_template, 'html_body_%s' % language_code)
 
     @classmethod
